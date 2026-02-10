@@ -1,66 +1,68 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <title>Minik Sudoku</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #f0f8ff;
-        }
+<meta charset="UTF-8">
+<title>Minik Sudoku</title>
 
-        h1 {
-            color: #2c3e50;
-        }
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background: #f0f8ff;
+    }
 
-        table {
-            margin: 20px auto;
-            border-collapse: collapse;
-        }
+    h1 {
+        color: #2c3e50;
+    }
 
-        td {
-            width: 65px;
-            height: 65px;
-            border: 2px solid #2c3e50;
-            font-size: 26px;
-            cursor: pointer;
-            background: #ffffff;
-            border-radius: 10px;
-        }
+    table {
+        margin: 20px auto;
+        border-collapse: collapse;
+    }
 
-        td.fixed {
-            background: #dfe6e9;
-            cursor: default;
-            font-weight: bold;
-        }
+    td {
+        width: 60px;
+        height: 60px;
+        border: 2px solid #2c3e50;
+        font-size: 26px;
+        text-align: center;
+        cursor: pointer;
+        background: white;
+    }
 
-        td.wrong {
-            background: #ffcccc;
-        }
+    td.fixed {
+        background: #dfe6e9;
+        cursor: default;
+        font-weight: bold;
+    }
 
-        button {
-            margin: 8px;
-            font-size: 18px;
-            padding: 10px 16px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            background: #74b9ff;
-            color: white;
-        }
+    td.wrong {
+        background: #ffcccc;
+    }
 
-        button:hover {
-            background: #0984e3;
-        }
+    button {
+        margin: 6px;
+        font-size: 18px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        background: #74b9ff;
+        color: white;
+    }
 
-        #message {
-            font-size: 22px;
-            color: green;
-            margin-top: 15px;
-        }
-    </style>
+    button:hover {
+        background: #0984e3;
+    }
+
+    #message {
+        font-size: 22px;
+        color: green;
+        margin-top: 15px;
+    }
+</style>
 </head>
+
 <body>
 
 <h1>🧩 Minik Sudoku</h1>
@@ -82,50 +84,84 @@
 <div id="message"></div>
 
 <script>
-    const solution = [
-        [1, 2, 3, 4],
-        [3, 4, 1, 2],
-        [2, 1, 4, 3],
-        [4, 3, 2, 1]
-    ];
+const solution = [
+    [1,2,3,4],
+    [3,4,1,2],
+    [2,1,4,3],
+    [4,3,2,1]
+];
 
-    const puzzle = [
-        [1, 0, 0, 4],
-        [0, 4, 1, 0],
-        [0, 1, 4, 0],
-        [4, 0, 0, 1]
-    ];
+const puzzle = [
+    [1,0,0,4],
+    [0,4,1,0],
+    [0,1,4,0],
+    [4,0,0,1]
+];
 
-    let selectedNumber = null;
-    let filled = [];
+let selectedNumber = null;
+let filled = [];
 
-    function selectNumber(num) {
-        selectedNumber = num;
+function selectNumber(num) {
+    selectedNumber = num;
+}
+
+function createBoard() {
+    const table = document.getElementById("sudoku");
+    table.innerHTML = "";
+    filled = JSON.parse(JSON.stringify(puzzle));
+    document.getElementById("message").textContent = "";
+
+    for (let r = 0; r < 4; r++) {
+        const tr = document.createElement("tr");
+
+        for (let c = 0; c < 4; c++) {
+            const td = document.createElement("td");
+
+            if (puzzle[r][c] !== 0) {
+                td.textContent = puzzle[r][c];
+                td.className = "fixed";
+            } else {
+                td.onclick = () => {
+                    if (!selectedNumber) return;
+
+                    td.textContent = selectedNumber;
+                    filled[r][c] = selectedNumber;
+
+                    if (selectedNumber !== solution[r][c]) {
+                        td.className = "wrong";
+                    } else {
+                        td.className = "";
+                    }
+
+                    checkWin();
+                };
+            }
+
+            tr.appendChild(td);
+        }
+
+        table.appendChild(tr);
     }
+}
 
-    function createBoard() {
-        const table = document.getElementById("sudoku");
-        table.innerHTML = "";
-        filled = JSON.parse(JSON.stringify(puzzle));
-        document.getElementById("message").textContent = "";
+function checkWin() {
+    for (let r = 0; r < 4; r++) {
+        for (let c = 0; c < 4; c++) {
+            if (filled[r][c] !== solution[r][c]) {
+                return;
+            }
+        }
+    }
+    document.getElementById("message").textContent =
+        "🎉 Tebrikler! Sudoku tamamlandı!";
+}
 
-        for (let r = 0; r < 4; r++) {
-            const row = document.createElement("tr");
+function newGame() {
+    createBoard();
+}
 
-            for (let c = 0; c < 4; c++) {
-                const cell = document.createElement("td");
+createBoard();
+</script>
 
-                if (puzzle[r][c] !== 0) {
-                    cell.textContent = puzzle[r][c];
-                    cell.classList.add("fixed");
-                } else {
-                    cell.onclick = () => {
-                        if (!selectedNumber) return;
-
-                        cell.textContent = selectedNumber;
-                        filled[r][c] = selectedNumber;
-
-                        if (selectedNumber !== solution[r][c]) {
-                            cell.classList.add("wrong");
-                        } else {
-                            cell.classList.remove("wrong");
+</body>
+</html>
