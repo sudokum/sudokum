@@ -276,7 +276,7 @@ function createBoard() {
                     } else {
                         td.classList.remove("wrong");
                     }
-                    checkCompletedBlocks();
+                    checkCompletedAll();
                     checkWin();
                 };
             }
@@ -287,17 +287,18 @@ function createBoard() {
         table.appendChild(tr);
     }
 }
-function checkCompletedBlocks() {
+
+function checkCompletedAll() {
     const blockSize = 2;
 
-    // önce eski yeşilleri temizle
+    // önce tüm yeşilleri temizle
     document.querySelectorAll("#sudoku td").forEach(td => {
         td.classList.remove("completed");
     });
 
+    // 🧩 BLOKLAR
     for (let br = 0; br < 4; br += blockSize) {
         for (let bc = 0; bc < 4; bc += blockSize) {
-
             let ok = true;
 
             for (let r = br; r < br + blockSize; r++) {
@@ -321,6 +322,46 @@ function checkCompletedBlocks() {
                     }
                 }
             }
+        }
+    }
+
+    // ➖ SATIRLAR
+    for (let r = 0; r < 4; r++) {
+        let ok = true;
+        for (let c = 0; c < 4; c++) {
+            if (filled[r][c] !== solution[r][c]) {
+                ok = false;
+                break;
+            }
+        }
+
+        if (ok) {
+            document.querySelectorAll(`#sudoku td[data-row="${r}"]`)
+                .forEach(td => {
+                    if (!td.classList.contains("wrong")) {
+                        td.classList.add("completed");
+                    }
+                });
+        }
+    }
+
+    // ➕ SÜTUNLAR
+    for (let c = 0; c < 4; c++) {
+        let ok = true;
+        for (let r = 0; r < 4; r++) {
+            if (filled[r][c] !== solution[r][c]) {
+                ok = false;
+                break;
+            }
+        }
+
+        if (ok) {
+            document.querySelectorAll(`#sudoku td[data-col="${c}"]`)
+                .forEach(td => {
+                    if (!td.classList.contains("wrong")) {
+                        td.classList.add("completed");
+                    }
+                });
         }
     }
 }
