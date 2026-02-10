@@ -83,6 +83,10 @@ td.block {
 td.wrong {
     background-color: #ff6b6b !important;
 }
+/* Aynı sayılar */
+td.same-number {
+    background-color: #ffeaa7;
+}
 
 </style>
 </head>
@@ -122,14 +126,20 @@ let removeCount = 6; // varsayılan kolay
 
 function clearHighlights() {
     document.querySelectorAll("#sudoku td").forEach(td => {
-        td.classList.remove("selected", "related", "block");
+        if (!td.classList.contains("wrong")) {
+            td.classList.remove("selected", "related", "block", "same-number");
+        }
     });
 }
 
 
+
 function selectNumber(num) {
     selectedNumber = num;
+    clearHighlights();
+    highlightSameNumbers(num);
 }
+
 
 function setLevel(count) {
     removeCount = count;
@@ -210,6 +220,13 @@ function highlight(r, c) {
     });
 }
 
+function highlightSameNumbers(num) {
+    document.querySelectorAll("#sudoku td").forEach(td => {
+        if (td.textContent == num && !td.classList.contains("wrong")) {
+            td.classList.add("same-number");
+        }
+    });
+}
 
 function createBoard() {
     const table = document.getElementById("sudoku");
@@ -239,10 +256,15 @@ function createBoard() {
 
                 // sabit hücrelerde de highlight olsun
                 td.onclick = () => highlight(r, c);
+                
 
             } else {
                 td.onclick = () => {
                     highlight(r, c);
+                    if (selectedNumber) {
+                        highlightSameNumbers(selectedNumber);
+                    }
+
 
                     if (!selectedNumber) return;
 
