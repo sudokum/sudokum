@@ -37,8 +37,17 @@ td.fixed {
     cursor: default;
 }
 
+td.selected { background-color: #b3d9ff !important; }
+td.related  { background-color: #eaf4ff; }
+td.block    { background-color: #dfefff; }
+td.same-number { background-color: #ffeaa7; }
+
 td.wrong {
-    background: #ffcccc;
+    background-color: #ff6b6b !important;
+}
+
+td.completed {
+    background-color: #b8f7c1 !important;
 }
 
 button {
@@ -66,38 +75,13 @@ button:hover { background: #0984e3; }
     color: green;
     margin-top: 15px;
 }
-    /* Seçilen hücre */
-td.selected {
-    background-color: #b3d9ff !important;
-}
-
-/* Aynı satır & sütun */
-td.related {
-    background-color: #eaf4ff;
-}
-
-/* Aynı 2x2 blok */
-td.block {
-    background-color: #dfefff;
-}
-td.wrong {
-    background-color: #ff6b6b !important;
-}
-/* Aynı sayılar */
-td.same-number {
-    background-color: #ffeaa7;
-}
-td.completed {
-    background-color: #b8f7d4 !important;
-}
-
 </style>
 </head>
 
 <body>
 
 <h1>🧩 Minik Sudoku</h1>
-<p>Seviyeni seç, sudoku çözmeye başla 😊</p>
+<p>Seviyeni ve tabloyu seç 😊</p>
 
 <div>
     <button class="level-btn" onclick="setLevel(6)">🟢 Kolay</button>
@@ -105,14 +89,14 @@ td.completed {
     <button class="level-btn" onclick="setLevel(10)">🔴 Zor</button>
 </div>
 
+<div>
+    <button onclick="setMode('4x4')">4×4</button>
+    <button onclick="setMode('6x6')">6×6</button>
+</div>
+
 <table id="sudoku"></table>
 
-<div>
-    <button onclick="selectNumber(1)">1</button>
-    <button onclick="selectNumber(2)">2</button>
-    <button onclick="selectNumber(3)">3</button>
-    <button onclick="selectNumber(4)">4</button>
-</div>
+<div id="numbers"></div>
 
 <div>
     <button onclick="newGame()">🔄 Yeni Oyun</button>
@@ -121,21 +105,55 @@ td.completed {
 <div id="message"></div>
 
 <script>
+/* ================= MODES ================= */
+const MODES = {
+    "4x4": {
+        gridSize: 4,
+        blockRows: 2,
+        blockCols: 2,
+        numbers: [1,2,3,4],
+        remove: 6
+    },
+    "6x6": {
+        gridSize: 6,
+        blockRows: 2,
+        blockCols: 3,
+        numbers: [1,2,3,4,5,6],
+        remove: 12
+    }
+};
+
+let currentMode = MODES["4x4"];
 let solution = [];
 let puzzle = [];
 let filled = [];
 let selectedNumber = null;
-let removeCount = 6; // varsayılan kolay
+let removeCount = currentMode.remove;
 
-function clearHighlights() {
-    document.querySelectorAll("#sudoku td").forEach(td => {
-        if (!td.classList.contains("wrong")) {
-            td.classList.remove("selected", "related", "block", "same-number");
-        }
-    });
+/* ================= UI ================= */
+function setMode(modeKey) {
+    currentMode = MODES[modeKey];
+    removeCount = currentMode.remove;
+    selectedNumber = null;
+    buildNumberButtons();
+    newGame();
 }
 
+function setLevel(count) {
+    removeCount = count;
+    newGame();
+}
 
+function buildNumberButtons() {
+    const box = document.getElementById("numbers");
+    box.innerHTML = "";
+    currentMode.numbers.forEach(n => {
+        const btn = document.createElement("button");
+        btn.textContent = n;
+        btn.onclick = () => selectNumber(n);
+        box.appendChild(btn);
+    });
+}
 
 function selectNumber(num) {
     selectedNumber = num;
@@ -143,85 +161,28 @@ function selectNumber(num) {
     highlightSameNumbers(num);
 }
 
-
-function setLevel(count) {
-    removeCount = count;
-    newGame();
-}
-
-// geçerli 4x4 sudoku çözümü
-function generateSolution() {
-    let base = [
-        [1,2,3,4],
-        [3,4,1,2],
-        [2,1,4,3],
-        [4,3,2,1]
-    ];
-
-    shuffle(base, 0, 2);
-    shuffle(base, 2, 2);
-
-    base = transpose(base);
-    shuffle(base, 0, 2);
-    shuffle(base, 2, 2);
-    base = transpose(base);
-
-    return base;
-}
-
-function shuffle(arr, start, count) {
-    for (let i = start + count - 1; i > start; i--) {
-        const j = start + Math.floor(Math.random() * count);
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-}
-
-function transpose(m) {
-    return m[0].map((_, i) => m.map(r => r[i]));
-}
-
-// seviye bazlı boşluk
-function generatePuzzle(sol) {
-    let puz = sol.map(r => r.slice());
-    let removed = 0;
-
-    while (removed < removeCount) {
-        let r = Math.floor(Math.random() * 4);
-        let c = Math.floor(Math.random() * 4);
-        if (puz[r][c] !== 0) {
-            puz[r][c] = 0;
-            removed++;
-        }
-    }
-    return puz;
-}
-function highlight(r, c) {
+/* ================= LOGIC ================= */
+function clearHighlights() {
     document.querySelectorAll("#sudoku td").forEach(td => {
         if (!td.classList.contains("wrong")) {
-            td.classList.remove("selected", "related", "block", "same-number");
+            td.classList.remove("selected","related","block","same-number");
         }
     });
+}
 
-    const blockSize = 2;
-
+function highlight(r,c) {
+    clearHighlights();
     document.querySelectorAll("#sudoku td").forEach(td => {
-        if (td.classList.contains("completed")) return;
-    
-        const row = parseInt(td.dataset.row);
-        const col = parseInt(td.dataset.col);
-    
-        if (row === r && col === c) {
-            td.classList.add("selected");
-        } else if (row === r || col === c) {
-            td.classList.add("related");
-        }
-    
+        const row = +td.dataset.row;
+        const col = +td.dataset.col;
+
+        if (row === r && col === c) td.classList.add("selected");
+        else if (row === r || col === c) td.classList.add("related");
+
         if (
-            Math.floor(row / 2) === Math.floor(r / 2) &&
-            Math.floor(col / 2) === Math.floor(c / 2)
-        ) {
-            td.classList.add("block");
-        }
+            Math.floor(row / currentMode.blockRows) === Math.floor(r / currentMode.blockRows) &&
+            Math.floor(col / currentMode.blockCols) === Math.floor(c / currentMode.blockCols)
+        ) td.classList.add("block");
     });
 }
 
@@ -233,168 +194,100 @@ function highlightSameNumbers(num) {
     });
 }
 
+/* ================= GENERATOR ================= */
+function generateSolution() {
+    const size = currentMode.gridSize;
+    const nums = currentMode.numbers;
+    let base = [];
+
+    for (let r=0;r<size;r++) {
+        base[r]=[];
+        for (let c=0;c<size;c++) {
+            base[r][c]=nums[(c+r)%size];
+        }
+    }
+    return base;
+}
+
+function generatePuzzle(sol) {
+    let puz = sol.map(r=>r.slice());
+    let removed = 0;
+    while (removed < removeCount) {
+        let r = Math.floor(Math.random()*currentMode.gridSize);
+        let c = Math.floor(Math.random()*currentMode.gridSize);
+        if (puz[r][c]!==0) {
+            puz[r][c]=0;
+            removed++;
+        }
+    }
+    return puz;
+}
+
+/* ================= BOARD ================= */
 function createBoard() {
     const table = document.getElementById("sudoku");
-    table.innerHTML = "";
-    document.getElementById("message").textContent = "";
+    table.innerHTML="";
+    document.getElementById("message").textContent="";
 
     solution = generateSolution();
     puzzle = generatePuzzle(solution);
-    filled = puzzle.map(r => r.slice());
+    filled = puzzle.map(r=>r.slice());
 
-    for (let r = 0; r < 4; r++) {
-        const tr = document.createElement("tr");
+    for (let r=0;r<currentMode.gridSize;r++) {
+        const tr=document.createElement("tr");
+        for (let c=0;c<currentMode.gridSize;c++) {
+            const td=document.createElement("td");
+            td.dataset.row=r;
+            td.dataset.col=c;
 
-        for (let c = 0; c < 4; c++) {
-            const td = document.createElement("td");
+            if ((c+1)%currentMode.blockCols===0 && c!==currentMode.gridSize-1)
+                td.classList.add("block-right");
+            if ((r+1)%currentMode.blockRows===0 && r!==currentMode.gridSize-1)
+                td.classList.add("block-bottom");
 
-            // ✅ DOĞRU YER
-            td.dataset.row = r;
-            td.dataset.col = c;
-
-            if (c === 1) td.classList.add("block-right");
-            if (r === 1) td.classList.add("block-bottom");
-
-            if (puzzle[r][c] !== 0) {
-                td.textContent = puzzle[r][c];
+            if (puzzle[r][c]!==0) {
+                td.textContent=puzzle[r][c];
                 td.classList.add("fixed");
-
-                // sabit hücrelerde de highlight olsun
-                td.onclick = () => highlight(r, c);
-                
-
+                td.onclick=()=>highlight(r,c);
             } else {
-                td.onclick = () => {
-                    highlight(r, c);
-                    if (selectedNumber) {
-                        highlightSameNumbers(selectedNumber);
-                    }
-
-
+                td.onclick=()=>{
+                    highlight(r,c);
                     if (!selectedNumber) return;
 
-                    td.textContent = selectedNumber;
-                    filled[r][c] = selectedNumber;
+                    td.textContent=selectedNumber;
+                    filled[r][c]=selectedNumber;
 
-                    if (selectedNumber !== solution[r][c]) {
+                    if (selectedNumber!==solution[r][c]) {
                         td.classList.add("wrong");
-                    
-                        // 🧒 ÇOCUK MODU: 1 sn sonra yanlış silinsin
-                        setTimeout(() => {
-                            td.textContent = "";
+                        setTimeout(()=>{
+                            td.textContent="";
                             td.classList.remove("wrong");
-                            filled[r][c] = 0;
-                        }, 1000);
-                    
-                        return; // yanlışsa devam etmesin
-                    } else {
-                        td.classList.remove("wrong");
+                            filled[r][c]=0;
+                        },1000);
+                        return;
                     }
-
-                    checkCompletedAll();
                     checkWin();
                 };
             }
-
             tr.appendChild(td);
         }
-
         table.appendChild(tr);
     }
 }
 
-function checkCompletedAll() {
-    const blockSize = 2;
-
-    // önce tüm yeşilleri temizle
-    document.querySelectorAll("#sudoku td").forEach(td => {
-        td.classList.remove("completed");
-    });
-
-    // 🧩 BLOKLAR
-    for (let br = 0; br < 4; br += blockSize) {
-        for (let bc = 0; bc < 4; bc += blockSize) {
-            let ok = true;
-
-            for (let r = br; r < br + blockSize; r++) {
-                for (let c = bc; c < bc + blockSize; c++) {
-                    if (filled[r][c] !== solution[r][c]) {
-                        ok = false;
-                        break;
-                    }
-                }
-            }
-
-            if (ok) {
-                for (let r = br; r < br + blockSize; r++) {
-                    for (let c = bc; c < bc + blockSize; c++) {
-                        const td = document.querySelector(
-                            `#sudoku td[data-row="${r}"][data-col="${c}"]`
-                        );
-                        if (!td.classList.contains("wrong")) {
-                            td.classList.add("completed");
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // ➖ SATIRLAR
-    for (let r = 0; r < 4; r++) {
-        let ok = true;
-        for (let c = 0; c < 4; c++) {
-            if (filled[r][c] !== solution[r][c]) {
-                ok = false;
-                break;
-            }
-        }
-
-        if (ok) {
-            document.querySelectorAll(`#sudoku td[data-row="${r}"]`)
-                .forEach(td => {
-                    if (!td.classList.contains("wrong")) {
-                        td.classList.add("completed");
-                    }
-                });
-        }
-    }
-
-    // ➕ SÜTUNLAR
-    for (let c = 0; c < 4; c++) {
-        let ok = true;
-        for (let r = 0; r < 4; r++) {
-            if (filled[r][c] !== solution[r][c]) {
-                ok = false;
-                break;
-            }
-        }
-
-        if (ok) {
-            document.querySelectorAll(`#sudoku td[data-col="${c}"]`)
-                .forEach(td => {
-                    if (!td.classList.contains("wrong")) {
-                        td.classList.add("completed");
-                    }
-                });
-        }
-    }
-}
-
 function checkWin() {
-    for (let r = 0; r < 4; r++) {
-        for (let c = 0; c < 4; c++) {
-            if (filled[r][c] !== solution[r][c]) return;
-        }
-    }
-    document.getElementById("message").textContent =
-        "🎉 Tebrikler! Seviye başarıyla tamamlandı!";
+    for (let r=0;r<currentMode.gridSize;r++)
+        for (let c=0;c<currentMode.gridSize;c++)
+            if (filled[r][c]!==solution[r][c]) return;
+
+    document.getElementById("message").textContent="🎉 Tebrikler!";
 }
 
 function newGame() {
     createBoard();
 }
 
+buildNumberButtons();
 createBoard();
 </script>
 
