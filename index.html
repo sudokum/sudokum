@@ -11,26 +11,41 @@ body {
     background: #f0f8ff;
 }
 h1 { color: #2c3e50; }
+
 table {
     margin: 20px auto;
     border-collapse: collapse;
+    border: 4px solid #2c3e50; /* dış çerçeve */
 }
+
 td {
     width: 60px;
     height: 60px;
-    border: 2px solid #2c3e50;
+    border: 1px solid #2c3e50;
     font-size: 26px;
+    text-align: center;
     cursor: pointer;
     background: white;
 }
+
+/* 2x2 blok çizgileri */
+td.block-right {
+    border-right: 4px solid #2c3e50;
+}
+td.block-bottom {
+    border-bottom: 4px solid #2c3e50;
+}
+
 td.fixed {
     background: #dfe6e9;
     font-weight: bold;
     cursor: default;
 }
+
 td.wrong {
     background: #ffcccc;
 }
+
 button {
     margin: 6px;
     font-size: 18px;
@@ -44,6 +59,7 @@ button {
 button:hover {
     background: #0984e3;
 }
+
 #message {
     font-size: 22px;
     color: green;
@@ -55,7 +71,7 @@ button:hover {
 <body>
 
 <h1>🧩 Minik Sudoku</h1>
-<p>Her satır, sütun ve 2×2 karede sayılar sadece bir kez olabilir 😊</p>
+<p>Her satır, sütun ve <b>2×2 kare</b> için sayılar bir kez kullanılır 😊</p>
 
 <table id="sudoku"></table>
 
@@ -82,7 +98,7 @@ function selectNumber(num) {
     selectedNumber = num;
 }
 
-// 🔢 geçerli 4x4 sudoku çözümü
+// geçerli 4x4 sudoku çözümü
 function generateSolution() {
     let base = [
         [1,2,3,4],
@@ -91,11 +107,9 @@ function generateSolution() {
         [4,3,2,1]
     ];
 
-    // satırları 2'li blok içinde karıştır
     shuffle(base, 0, 2);
     shuffle(base, 2, 2);
 
-    // sütunları 2'li blok içinde karıştır
     base = transpose(base);
     shuffle(base, 0, 2);
     shuffle(base, 2, 2);
@@ -104,7 +118,6 @@ function generateSolution() {
     return base;
 }
 
-// yardımcılar
 function shuffle(arr, start, count) {
     for (let i = start + count - 1; i > start; i--) {
         const j = start + Math.floor(Math.random() * count);
@@ -112,19 +125,18 @@ function shuffle(arr, start, count) {
     }
 }
 
-function transpose(matrix) {
-    return matrix[0].map((_, i) => matrix.map(row => row[i]));
+function transpose(m) {
+    return m[0].map((_, i) => m.map(r => r[i]));
 }
 
-// 🧩 hücre boşalt (kolay seviye)
+// kolay seviye boşluk
 function generatePuzzle(sol) {
-    let puz = sol.map(row => row.slice());
+    let puz = sol.map(r => r.slice());
     let removed = 0;
 
     while (removed < 6) {
         let r = Math.floor(Math.random() * 4);
         let c = Math.floor(Math.random() * 4);
-
         if (puz[r][c] !== 0) {
             puz[r][c] = 0;
             removed++;
@@ -140,7 +152,7 @@ function createBoard() {
 
     solution = generateSolution();
     puzzle = generatePuzzle(solution);
-    filled = puzzle.map(row => row.slice());
+    filled = puzzle.map(r => r.slice());
 
     for (let r = 0; r < 4; r++) {
         const tr = document.createElement("tr");
@@ -148,9 +160,13 @@ function createBoard() {
         for (let c = 0; c < 4; c++) {
             const td = document.createElement("td");
 
+            // 2x2 blok çizgileri
+            if (c === 1) td.classList.add("block-right");
+            if (r === 1) td.classList.add("block-bottom");
+
             if (puzzle[r][c] !== 0) {
                 td.textContent = puzzle[r][c];
-                td.className = "fixed";
+                td.classList.add("fixed");
             } else {
                 td.onclick = () => {
                     if (!selectedNumber) return;
@@ -159,11 +175,10 @@ function createBoard() {
                     filled[r][c] = selectedNumber;
 
                     if (selectedNumber !== solution[r][c]) {
-                        td.className = "wrong";
+                        td.classList.add("wrong");
                     } else {
-                        td.className = "";
+                        td.classList.remove("wrong");
                     }
-
                     checkWin();
                 };
             }
@@ -181,7 +196,7 @@ function checkWin() {
         }
     }
     document.getElementById("message").textContent =
-        "🎉 Tebrikler! Kurallara uygun Sudoku tamamlandı!";
+        "🎉 Tebrikler! Sudoku tamamlandı!";
 }
 
 function newGame() {
