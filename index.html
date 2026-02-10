@@ -5,68 +5,57 @@
 <title>Minik Sudoku</title>
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        text-align: center;
-        background: #f0f8ff;
-    }
-
-    h1 {
-        color: #2c3e50;
-    }
-
-    table {
-        margin: 20px auto;
-        border-collapse: collapse;
-    }
-
-    td {
-        width: 60px;
-        height: 60px;
-        border: 2px solid #2c3e50;
-        font-size: 26px;
-        text-align: center;
-        cursor: pointer;
-        background: white;
-    }
-
-    td.fixed {
-        background: #dfe6e9;
-        cursor: default;
-        font-weight: bold;
-    }
-
-    td.wrong {
-        background: #ffcccc;
-    }
-
-    button {
-        margin: 6px;
-        font-size: 18px;
-        padding: 10px 16px;
-        border-radius: 10px;
-        border: none;
-        cursor: pointer;
-        background: #74b9ff;
-        color: white;
-    }
-
-    button:hover {
-        background: #0984e3;
-    }
-
-    #message {
-        font-size: 22px;
-        color: green;
-        margin-top: 15px;
-    }
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f0f8ff;
+}
+h1 { color: #2c3e50; }
+table {
+    margin: 20px auto;
+    border-collapse: collapse;
+}
+td {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #2c3e50;
+    font-size: 26px;
+    cursor: pointer;
+    background: white;
+}
+td.fixed {
+    background: #dfe6e9;
+    font-weight: bold;
+    cursor: default;
+}
+td.wrong {
+    background: #ffcccc;
+}
+button {
+    margin: 6px;
+    font-size: 18px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    background: #74b9ff;
+    color: white;
+}
+button:hover {
+    background: #0984e3;
+}
+#message {
+    font-size: 22px;
+    color: green;
+    margin-top: 15px;
+}
 </style>
 </head>
 
 <body>
 
 <h1>🧩 Minik Sudoku</h1>
-<p>Doğru sayıları seçerek tabloyu doldur 😊</p>
+<p>Her satır, sütun ve 2×2 karede sayılar sadece bir kez olabilir 😊</p>
 
 <table id="sudoku"></table>
 
@@ -93,28 +82,48 @@ function selectNumber(num) {
     selectedNumber = num;
 }
 
-// 🔢 4x4 geçerli çözüm üret
+// 🔢 geçerli 4x4 sudoku çözümü
 function generateSolution() {
-    const base = [
+    let base = [
         [1,2,3,4],
         [3,4,1,2],
         [2,1,4,3],
         [4,3,2,1]
     ];
 
-    // satırları karıştır
-    return base.sort(() => Math.random() - 0.5)
-               .map(row => row.sort(() => Math.random() - 0.5));
+    // satırları 2'li blok içinde karıştır
+    shuffle(base, 0, 2);
+    shuffle(base, 2, 2);
+
+    // sütunları 2'li blok içinde karıştır
+    base = transpose(base);
+    shuffle(base, 0, 2);
+    shuffle(base, 2, 2);
+    base = transpose(base);
+
+    return base;
 }
 
-// 🧩 bazı hücreleri boşalt
-function generatePuzzle(sol) {
-    const puz = sol.map(row => row.slice());
+// yardımcılar
+function shuffle(arr, start, count) {
+    for (let i = start + count - 1; i > start; i--) {
+        const j = start + Math.floor(Math.random() * count);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
 
+function transpose(matrix) {
+    return matrix[0].map((_, i) => matrix.map(row => row[i]));
+}
+
+// 🧩 hücre boşalt (kolay seviye)
+function generatePuzzle(sol) {
+    let puz = sol.map(row => row.slice());
     let removed = 0;
-    while (removed < 6) { // ilkokul seviyesi
-        const r = Math.floor(Math.random() * 4);
-        const c = Math.floor(Math.random() * 4);
+
+    while (removed < 6) {
+        let r = Math.floor(Math.random() * 4);
+        let c = Math.floor(Math.random() * 4);
 
         if (puz[r][c] !== 0) {
             puz[r][c] = 0;
@@ -161,7 +170,6 @@ function createBoard() {
 
             tr.appendChild(td);
         }
-
         table.appendChild(tr);
     }
 }
@@ -169,13 +177,11 @@ function createBoard() {
 function checkWin() {
     for (let r = 0; r < 4; r++) {
         for (let c = 0; c < 4; c++) {
-            if (filled[r][c] !== solution[r][c]) {
-                return;
-            }
+            if (filled[r][c] !== solution[r][c]) return;
         }
     }
     document.getElementById("message").textContent =
-        "🎉 Tebrikler! Sudoku tamamlandı!";
+        "🎉 Tebrikler! Kurallara uygun Sudoku tamamlandı!";
 }
 
 function newGame() {
