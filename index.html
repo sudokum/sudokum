@@ -2,16 +2,16 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Miniklere Sudoku</title>
+    <title>Minik Sudoku</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background: #f5f7fa;
+            background: #f0f8ff;
         }
 
         h1 {
-            color: #333;
+            color: #2c3e50;
         }
 
         table {
@@ -20,36 +20,51 @@
         }
 
         td {
-            width: 60px;
-            height: 60px;
-            border: 2px solid #333;
-            font-size: 24px;
-            text-align: center;
-            vertical-align: middle;
+            width: 65px;
+            height: 65px;
+            border: 2px solid #2c3e50;
+            font-size: 26px;
             cursor: pointer;
-            background: #fff;
+            background: #ffffff;
+            border-radius: 10px;
         }
 
         td.fixed {
-            background: #e0e0e0;
+            background: #dfe6e9;
             cursor: default;
+            font-weight: bold;
         }
 
         td.wrong {
-            background: #ffd6d6;
+            background: #ffcccc;
         }
 
         button {
-            margin: 5px;
+            margin: 8px;
             font-size: 18px;
-            padding: 10px 15px;
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            background: #74b9ff;
+            color: white;
+        }
+
+        button:hover {
+            background: #0984e3;
+        }
+
+        #message {
+            font-size: 22px;
+            color: green;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
 
 <h1>🧩 Minik Sudoku</h1>
-<p>Doğru sayıyı seç ve karelere yerleştir 😊</p>
+<p>Doğru sayıları seçerek tabloyu doldur 😊</p>
 
 <table id="sudoku"></table>
 
@@ -59,6 +74,12 @@
     <button onclick="selectNumber(3)">3</button>
     <button onclick="selectNumber(4)">4</button>
 </div>
+
+<div>
+    <button onclick="newGame()">🔄 Yeni Oyun</button>
+</div>
+
+<div id="message"></div>
 
 <script>
     const solution = [
@@ -76,6 +97,7 @@
     ];
 
     let selectedNumber = null;
+    let filled = [];
 
     function selectNumber(num) {
         selectedNumber = num;
@@ -84,6 +106,8 @@
     function createBoard() {
         const table = document.getElementById("sudoku");
         table.innerHTML = "";
+        filled = JSON.parse(JSON.stringify(puzzle));
+        document.getElementById("message").textContent = "";
 
         for (let r = 0; r < 4; r++) {
             const row = document.createElement("tr");
@@ -99,24 +123,9 @@
                         if (!selectedNumber) return;
 
                         cell.textContent = selectedNumber;
+                        filled[r][c] = selectedNumber;
 
                         if (selectedNumber !== solution[r][c]) {
                             cell.classList.add("wrong");
                         } else {
                             cell.classList.remove("wrong");
-                        }
-                    };
-                }
-
-                row.appendChild(cell);
-            }
-
-            table.appendChild(row);
-        }
-    }
-
-    createBoard();
-</script>
-
-</body>
-</html>
