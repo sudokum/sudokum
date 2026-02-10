@@ -278,9 +278,19 @@ function createBoard() {
 
                     if (selectedNumber !== solution[r][c]) {
                         td.classList.add("wrong");
+                    
+                        // 🧒 ÇOCUK MODU: 1 sn sonra yanlış silinsin
+                        setTimeout(() => {
+                            td.textContent = "";
+                            td.classList.remove("wrong");
+                            filled[r][c] = 0;
+                        }, 1000);
+                    
+                        return; // yanlışsa devam etmesin
                     } else {
                         td.classList.remove("wrong");
                     }
+
                     checkCompletedAll();
                     checkWin();
                 };
