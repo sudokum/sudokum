@@ -87,6 +87,9 @@ td.wrong {
 td.same-number {
     background-color: #ffeaa7;
 }
+td.completed {
+    background-color: #b8f7d4 !important;
+}
 
 </style>
 </head>
@@ -195,25 +198,27 @@ function generatePuzzle(sol) {
 function highlight(r, c) {
     document.querySelectorAll("#sudoku td").forEach(td => {
         if (!td.classList.contains("wrong")) {
-            td.classList.remove("selected", "related", "block");
+            td.classList.remove("selected", "related", "block", "same-number");
         }
     });
 
     const blockSize = 2;
 
     document.querySelectorAll("#sudoku td").forEach(td => {
+        if (td.classList.contains("completed")) return;
+    
         const row = parseInt(td.dataset.row);
         const col = parseInt(td.dataset.col);
-
+    
         if (row === r && col === c) {
             td.classList.add("selected");
         } else if (row === r || col === c) {
             td.classList.add("related");
         }
-
+    
         if (
-            Math.floor(row / blockSize) === Math.floor(r / blockSize) &&
-            Math.floor(col / blockSize) === Math.floor(c / blockSize)
+            Math.floor(row / 2) === Math.floor(r / 2) &&
+            Math.floor(col / 2) === Math.floor(c / 2)
         ) {
             td.classList.add("block");
         }
