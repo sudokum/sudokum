@@ -80,6 +80,9 @@ td.related {
 td.block {
     background-color: #dfefff;
 }
+td.wrong {
+    background-color: #ff6b6b !important;
+}
 
 </style>
 </head>
@@ -180,7 +183,11 @@ function generatePuzzle(sol) {
     return puz;
 }
 function highlight(r, c) {
-    clearHighlights();
+    document.querySelectorAll("#sudoku td").forEach(td => {
+        if (!td.classList.contains("wrong")) {
+            td.classList.remove("selected", "related", "block");
+        }
+    });
 
     const blockSize = 2;
 
@@ -202,6 +209,7 @@ function highlight(r, c) {
         }
     });
 }
+
 
 function createBoard() {
     const table = document.getElementById("sudoku");
