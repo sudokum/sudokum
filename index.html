@@ -3,9 +3,120 @@
 <head>
     <meta charset="UTF-8">
     <title>Miniklere Sudoku</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: #f5f7fa;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        td {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #333;
+            font-size: 24px;
+            text-align: center;
+            vertical-align: middle;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        td.fixed {
+            background: #e0e0e0;
+            cursor: default;
+        }
+
+        td.wrong {
+            background: #ffd6d6;
+        }
+
+        button {
+            margin: 5px;
+            font-size: 18px;
+            padding: 10px 15px;
+        }
+    </style>
 </head>
 <body>
-    <h1>🎉 SudokuM</h1>
-    <p>Yakında burada bir Sudoku oyunu olacak!</p>
+
+<h1>🧩 Minik Sudoku</h1>
+<p>Doğru sayıyı seç ve karelere yerleştir 😊</p>
+
+<table id="sudoku"></table>
+
+<div>
+    <button onclick="selectNumber(1)">1</button>
+    <button onclick="selectNumber(2)">2</button>
+    <button onclick="selectNumber(3)">3</button>
+    <button onclick="selectNumber(4)">4</button>
+</div>
+
+<script>
+    const solution = [
+        [1, 2, 3, 4],
+        [3, 4, 1, 2],
+        [2, 1, 4, 3],
+        [4, 3, 2, 1]
+    ];
+
+    const puzzle = [
+        [1, 0, 0, 4],
+        [0, 4, 1, 0],
+        [0, 1, 4, 0],
+        [4, 0, 0, 1]
+    ];
+
+    let selectedNumber = null;
+
+    function selectNumber(num) {
+        selectedNumber = num;
+    }
+
+    function createBoard() {
+        const table = document.getElementById("sudoku");
+        table.innerHTML = "";
+
+        for (let r = 0; r < 4; r++) {
+            const row = document.createElement("tr");
+
+            for (let c = 0; c < 4; c++) {
+                const cell = document.createElement("td");
+
+                if (puzzle[r][c] !== 0) {
+                    cell.textContent = puzzle[r][c];
+                    cell.classList.add("fixed");
+                } else {
+                    cell.onclick = () => {
+                        if (!selectedNumber) return;
+
+                        cell.textContent = selectedNumber;
+
+                        if (selectedNumber !== solution[r][c]) {
+                            cell.classList.add("wrong");
+                        } else {
+                            cell.classList.remove("wrong");
+                        }
+                    };
+                }
+
+                row.appendChild(cell);
+            }
+
+            table.appendChild(row);
+        }
+    }
+
+    createBoard();
+</script>
+
 </body>
 </html>
