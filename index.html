@@ -15,7 +15,7 @@ h1 { color: #2c3e50; }
 table {
     margin: 20px auto;
     border-collapse: collapse;
-    border: 4px solid #2c3e50; /* dış çerçeve */
+    border: 4px solid #2c3e50;
 }
 
 td {
@@ -28,13 +28,8 @@ td {
     background: white;
 }
 
-/* 2x2 blok çizgileri */
-td.block-right {
-    border-right: 4px solid #2c3e50;
-}
-td.block-bottom {
-    border-bottom: 4px solid #2c3e50;
-}
+td.block-right { border-right: 4px solid #2c3e50; }
+td.block-bottom { border-bottom: 4px solid #2c3e50; }
 
 td.fixed {
     background: #dfe6e9;
@@ -56,8 +51,14 @@ button {
     background: #74b9ff;
     color: white;
 }
-button:hover {
-    background: #0984e3;
+button:hover { background: #0984e3; }
+
+.level-btn {
+    background: #55efc4;
+    color: #2d3436;
+}
+.level-btn:hover {
+    background: #00b894;
 }
 
 #message {
@@ -71,7 +72,13 @@ button:hover {
 <body>
 
 <h1>🧩 Minik Sudoku</h1>
-<p>Her satır, sütun ve <b>2×2 kare</b> için sayılar bir kez kullanılır 😊</p>
+<p>Seviyeni seç, sudoku çözmeye başla 😊</p>
+
+<div>
+    <button class="level-btn" onclick="setLevel(6)">🟢 Kolay</button>
+    <button class="level-btn" onclick="setLevel(8)">🟡 Orta</button>
+    <button class="level-btn" onclick="setLevel(10)">🔴 Zor</button>
+</div>
 
 <table id="sudoku"></table>
 
@@ -93,9 +100,15 @@ let solution = [];
 let puzzle = [];
 let filled = [];
 let selectedNumber = null;
+let removeCount = 6; // varsayılan kolay
 
 function selectNumber(num) {
     selectedNumber = num;
+}
+
+function setLevel(count) {
+    removeCount = count;
+    newGame();
 }
 
 // geçerli 4x4 sudoku çözümü
@@ -129,12 +142,12 @@ function transpose(m) {
     return m[0].map((_, i) => m.map(r => r[i]));
 }
 
-// kolay seviye boşluk
+// seviye bazlı boşluk
 function generatePuzzle(sol) {
     let puz = sol.map(r => r.slice());
     let removed = 0;
 
-    while (removed < 6) {
+    while (removed < removeCount) {
         let r = Math.floor(Math.random() * 4);
         let c = Math.floor(Math.random() * 4);
         if (puz[r][c] !== 0) {
@@ -160,7 +173,6 @@ function createBoard() {
         for (let c = 0; c < 4; c++) {
             const td = document.createElement("td");
 
-            // 2x2 blok çizgileri
             if (c === 1) td.classList.add("block-right");
             if (r === 1) td.classList.add("block-bottom");
 
@@ -182,7 +194,6 @@ function createBoard() {
                     checkWin();
                 };
             }
-
             tr.appendChild(td);
         }
         table.appendChild(tr);
@@ -196,7 +207,7 @@ function checkWin() {
         }
     }
     document.getElementById("message").textContent =
-        "🎉 Tebrikler! Sudoku tamamlandı!";
+        "🎉 Tebrikler! Seviye başarıyla tamamlandı!";
 }
 
 function newGame() {
