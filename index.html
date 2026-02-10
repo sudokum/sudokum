@@ -66,6 +66,21 @@ button:hover { background: #0984e3; }
     color: green;
     margin-top: 15px;
 }
+    /* Seçilen hücre */
+td.selected {
+    background-color: #b3d9ff !important;
+}
+
+/* Aynı satır & sütun */
+td.related {
+    background-color: #eaf4ff;
+}
+
+/* Aynı 2x2 blok */
+td.block {
+    background-color: #dfefff;
+}
+
 </style>
 </head>
 
@@ -101,6 +116,13 @@ let puzzle = [];
 let filled = [];
 let selectedNumber = null;
 let removeCount = 6; // varsayılan kolay
+
+function clearHighlights() {
+    document.querySelectorAll("#sudoku td").forEach(td => {
+        td.classList.remove("selected", "related", "block");
+    });
+}
+
 
 function selectNumber(num) {
     selectedNumber = num;
@@ -157,6 +179,29 @@ function generatePuzzle(sol) {
     }
     return puz;
 }
+function highlight(r, c) {
+    clearHighlights();
+
+    const blockSize = 2;
+
+    document.querySelectorAll("#sudoku td").forEach(td => {
+        const row = parseInt(td.dataset.row);
+        const col = parseInt(td.dataset.col);
+
+        if (row === r && col === c) {
+            td.classList.add("selected");
+        } else if (row === r || col === c) {
+            td.classList.add("related");
+        }
+
+        if (
+            Math.floor(row / blockSize) === Math.floor(r / blockSize) &&
+            Math.floor(col / blockSize) === Math.floor(c / blockSize)
+        ) {
+            td.classList.add("block");
+        }
+    });
+}
 
 function createBoard() {
     const table = document.getElementById("sudoku");
@@ -169,6 +214,8 @@ function createBoard() {
 
     for (let r = 0; r < 4; r++) {
         const tr = document.createElement("tr");
+        td.dataset.row = r;
+        td.dataset.col = c;
 
         for (let c = 0; c < 4; c++) {
             const td = document.createElement("td");
@@ -181,18 +228,22 @@ function createBoard() {
                 td.classList.add("fixed");
             } else {
                 td.onclick = () => {
+                    highlight(r, c);
+                
                     if (!selectedNumber) return;
-
+                
                     td.textContent = selectedNumber;
                     filled[r][c] = selectedNumber;
-
+                
                     if (selectedNumber !== solution[r][c]) {
                         td.classList.add("wrong");
                     } else {
                         td.classList.remove("wrong");
                     }
+                
                     checkWin();
                 };
+
             }
             tr.appendChild(td);
         }
