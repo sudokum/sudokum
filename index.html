@@ -276,7 +276,7 @@ function createBoard() {
                     } else {
                         td.classList.remove("wrong");
                     }
-
+                    checkCompletedBlocks();
                     checkWin();
                 };
             }
@@ -285,6 +285,43 @@ function createBoard() {
         }
 
         table.appendChild(tr);
+    }
+}
+function checkCompletedBlocks() {
+    const blockSize = 2;
+
+    // önce eski yeşilleri temizle
+    document.querySelectorAll("#sudoku td").forEach(td => {
+        td.classList.remove("completed");
+    });
+
+    for (let br = 0; br < 4; br += blockSize) {
+        for (let bc = 0; bc < 4; bc += blockSize) {
+
+            let ok = true;
+
+            for (let r = br; r < br + blockSize; r++) {
+                for (let c = bc; c < bc + blockSize; c++) {
+                    if (filled[r][c] !== solution[r][c]) {
+                        ok = false;
+                        break;
+                    }
+                }
+            }
+
+            if (ok) {
+                for (let r = br; r < br + blockSize; r++) {
+                    for (let c = bc; c < bc + blockSize; c++) {
+                        const td = document.querySelector(
+                            `#sudoku td[data-row="${r}"][data-col="${c}"]`
+                        );
+                        if (!td.classList.contains("wrong")) {
+                            td.classList.add("completed");
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
